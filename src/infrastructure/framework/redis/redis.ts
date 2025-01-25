@@ -75,7 +75,7 @@ class RedisClient {
         const parsedResult = [];
         for (let i = 0; i < result.length; i += 2) {
             const member = JSON.parse(result[i]);
-            const score = parseFloat(result[i + 1]);
+            const score = result[i + 1];
             parsedResult.push({...member, score: score});
         }
 
