@@ -1,0 +1,30 @@
+{
+  "name": "big_id",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "install-dependencies": "npm install",
+    "start-docker": "docker-compose -f ./docker/docker-compose.yml up -d",
+    "run-app": "node dist/index.js",
+    "start": "npm run install-dependencies && npm run build && npm run start-docker && npm run run-app"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.10",
+    "@types/pg": "^8.11.11",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.4.2",
+    "sequelize": "^6.37.5",
+    "typescript": "^5.7.3",
+    "uuid": "^11.0.5"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}

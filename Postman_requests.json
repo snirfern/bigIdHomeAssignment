@@ -1,0 +1,216 @@
+{
+	"info": {
+		"_postman_id": "03185180-6fd9-4450-b265-b7427e671b52",
+		"name": "BigId",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create new user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"kokojusdsmbo@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/user/caef55ab-bf51-4913-8b87-ab27e87e3e06",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"user",
+						"caef55ab-bf51-4913-8b87-ab27e87e3e06"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create new article",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"authorId\": \"b4a9af3d-dd31-456a-8dcd-5d05a265aed3\",\r\n\"title\":\"mo mo mo mo mo mo\",\r\n\"content\":\"content bannana a cherry pplecontent\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/article",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"article"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get article",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/article/dede0890-a68f-4eee-8a30-c27e3420c54f",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"article",
+						"dede0890-a68f-4eee-8a30-c27e3420c54f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get words distribution",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/article/findwords?words=apple&words=bannana&words=cherry",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"article",
+						"findwords"
+					],
+					"query": [
+						{
+							"key": "words",
+							"value": "apple"
+						},
+						{
+							"key": "words",
+							"value": "bannana"
+						},
+						{
+							"key": "words",
+							"value": "cherry"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"articleId\": \"1bab5789-4392-49e5-acad-2c761ca5f581\",\r\n\"text\":\"bad bad post\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/comment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"comment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get comment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/comment/10fd2102-cab2-4d2f-8ea9-bbdd80d09cad",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"comment",
+						"10fd2102-cab2-4d2f-8ea9-bbdd80d09cad"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get top word distribution article",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/article/mostCommonWords/cherry",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"article",
+						"mostCommonWords",
+						"cherry"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
