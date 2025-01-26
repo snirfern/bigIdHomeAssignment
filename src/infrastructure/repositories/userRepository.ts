@@ -5,7 +5,7 @@ export class UserRepository {
     private userDAL = new UserDAL();
 
     async create(newUser: IUser): Promise<IUser> {
-        return await this.userDAL.createUser(newUser) as IUser;
+        return await this.userDAL.create(newUser) as IUser;
     }
 
     async findById(id: string): Promise<IUser> {

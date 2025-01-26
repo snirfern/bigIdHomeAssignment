@@ -1,7 +1,5 @@
-import Article from '../models/Article';
-import {IArticle} from "../../domain/entities/IArticle";
+export interface IBaseDal<T,R> {
+    create(newArticle: Partial<R>): Promise<T>;
 
-export interface IBaseDal {
-    create(newArticle: Partial<IArticle>): Promise<Article>;
-    findByField(field: string, value: string): Promise<Article | null>;
+    findByField(field: string, value: string): Promise<T | null>;
 }
