@@ -5,8 +5,8 @@ import {IUser} from "../entities/IUser";
 class UserService {
     private userRepository: UserRepository;
 
-    constructor() {
-        this.userRepository = new UserRepository();
+    constructor(userRepository: UserRepository) {
+        this.userRepository = userRepository;
     }
 
     async createUser(newUser: IUser) {

@@ -5,8 +5,8 @@ import {EntityDoesNotExist} from "../errrors/errors";
 class CommentService {
     private commentRepository: CommentRepository;
 
-    constructor() {
-        this.commentRepository = new CommentRepository();
+    constructor(commentRepository: CommentRepository) {
+        this.commentRepository = commentRepository;
     }
 
     async createComment(newComment: IComment) {

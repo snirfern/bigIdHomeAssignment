@@ -70,8 +70,11 @@ class RedisClient {
     }
 
     async getTopKItemsFromSortedSet(key: string, start: number, end: number): Promise<any[]> {
-        const result = await this.client.zrange(key, start, end, 'WITHSCORES');
 
+        const result = await this.client.zrange(key, start, end, 'WITHSCORES');
+        if (!result || result.length === 0) {
+            return [];
+        }
         const parsedResult = [];
         for (let i = 0; i < result.length; i += 2) {
             const member = JSON.parse(result[i]);

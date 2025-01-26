@@ -20,8 +20,8 @@ class ArticleService {
     private articleRepository: ArticleRepository;
     private redis: RedisClient;
 
-    constructor() {
-        this.articleRepository = new ArticleRepository();
+    constructor(articleRepository: ArticleRepository) {
+        this.articleRepository = articleRepository;
         this.redis = RedisConnectionManager.getConnection(config.dataSources.redis.dbConfig)
     }
 
@@ -72,7 +72,7 @@ class ArticleService {
 
     async findMostCommonWords(word: string): Promise<string> {
         const mostCommonWordsRes = await this.redis.getTopKItemsFromSortedSet(word, -1, -1)
-        return mostCommonWordsRes[0].article_id
+        return mostCommonWordsRes.length > 0 ? mostCommonWordsRes[0].article_id : '';
     }
 }
 
