@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize } from 'sequelize';
+import {DataTypes, Model, Sequelize} from 'sequelize';
 import User from './User';
 import Comment from './Comment';
 import {v4 as uuidv4} from "uuid";
@@ -36,16 +36,20 @@ class Article extends Model {
             },
             {
                 sequelize,
+                indexes: [{
+                    unique: true,
+                    fields: ['id'],
+                }],
                 modelName: 'Article',
                 tableName: 'articles',
-                timestamps:false
+                timestamps: false
             }
         );
     }
 
     public static associate() {
-        Article.belongsTo(User, { foreignKey: 'authorId' });
-        Article.hasMany(Comment, { foreignKey: 'articleId' });
+        Article.belongsTo(User, {foreignKey: 'authorId'});
+        Article.hasMany(Comment, {foreignKey: 'articleId'});
     }
 }
 

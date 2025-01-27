@@ -25,3 +25,4 @@ app.listen(PORT, async () => {
     await sequelizeDB.connect()
     logger.info(`Server running on http://localhost:${PORT}`);
 });
+export {app};

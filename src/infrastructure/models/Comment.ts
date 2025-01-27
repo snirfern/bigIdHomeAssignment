@@ -30,6 +30,10 @@ class Comment extends Model {
             },
             {
                 sequelize,
+                indexes: [{
+                    unique: true,
+                    fields: ['id'],
+                }],
                 modelName: 'Comment',
                 tableName: 'comments',
                 timestamps: false

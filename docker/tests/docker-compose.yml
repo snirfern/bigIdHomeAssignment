@@ -1,17 +1,36 @@
 version: '3.8'
 
 services:
-  db:
+  test-service:
+    build:
+      context: ../..
+      dockerfile: docker/tests/Dockerfile
+    container_name: app_test
+    environment:
+      VE_DB_HOST: postgres_db
+      VE_REDIS_HOST: redis_master
+      NODE_ENV: test
+    networks:
+      - app-net
+    depends_on:
+      - test_db
+      - redis-master
+    command: [ "npm", "run", "test" ]
+    volumes:
+      - ./test-results:/usr/src/app/test-results
+
+  test_db:
     image: postgres:13
     container_name: postgres_db
     environment:
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: devdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+      NODE_ENV: test
     ports:
       - "5432:5432"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-net
 
   redis-master:
     image: redis:latest
@@ -22,7 +41,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - redis-net
+      - app-net
 
   redis-replica:
     image: redis:latest
@@ -33,7 +52,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - redis-net
+      - app-net
 
   redis-replica2:
     image: redis:latest
@@ -44,11 +63,11 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - redis-net
+      - app-net
 
 volumes:
   redis_data:
 
 networks:
-  redis-net:
+  app-net:
     driver: bridge

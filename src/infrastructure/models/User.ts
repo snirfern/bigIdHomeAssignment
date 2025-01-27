@@ -1,5 +1,5 @@
-import { DataTypes, Model, Sequelize } from 'sequelize';
-import { v4 as uuidv4 } from 'uuid';
+import {DataTypes, Model, Sequelize} from 'sequelize';
+import {v4 as uuidv4} from 'uuid';
 
 class User extends Model {
     public id: string;
@@ -21,9 +21,13 @@ class User extends Model {
             },
             {
                 sequelize,
+                indexes: [{
+                    unique: true,
+                    fields: ['id'],
+                }],
                 modelName: 'User',
                 tableName: 'users',
-                timestamps:false
+                timestamps: false
             }
         );
     }

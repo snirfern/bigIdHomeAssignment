@@ -11,7 +11,7 @@ class RedisConnectionManager {
 
     static getConnection(redisConfig: RedisConfig): RedisClient {
         const configKey = `${redisConfig.host}:${redisConfig.port}`;
-
+        console.log(`configkey: ${configKey}`)
         if (!this.connections.has(configKey)) {
             const redisClient = new RedisClient(redisConfig);
             this.connections.set(configKey, redisClient);
@@ -40,9 +40,19 @@ class RedisClient {
         });
 
         this.client.on('error', (err) => {
-            logger.error(`Redis connection error to ${redisConfig.host}:${redisConfig.port}:\n${err}`);
+            logger.error(`rror to ${redisConfig.host}:${redisConfig.port}:\n${err}`);
         });
     }
+
+    async quit(): Promise<void> {
+        try {
+            await this.client.quit();
+            logger.info('Redis connection closed successfully');
+        } catch (error) {
+            logger.error(`Error while closing Redis connection: ${error}`);
+        }
+    }
+
 
     async getTopScoreItem(key: string): Promise<{ [key: string]: any } | null> {
         const result = await this.client.zrange(key, -1, -1, 'WITHSCORES');

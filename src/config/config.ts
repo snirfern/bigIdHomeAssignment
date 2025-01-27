@@ -30,15 +30,14 @@ if (envConfigs.error) {
 const config: Config = {
     dataSources: {
         sequelize: {
-            dbConfig: sequelizeConfig,
+            dbConfig: sequelizeConfig(),
         },
         redis: {
-            dbConfig: redisConfig
+            dbConfig: redisConfig()
         }
     },
     server: {
         port: Number(process.env.PORT),
     },
 };
-
 export default config;

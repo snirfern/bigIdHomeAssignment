@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+    container_name: app
+    environment:
+      VE_DB_HOST: postgres_db
+      VE_REDIS_HOST: redis_master
+      NODE_ENV: qa
+    ports:
+      - "3000:3000"
+    networks:
+      - app-net
+    depends_on:
+      - db
+      - redis-master
+
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: qauser
+      POSTGRES_PASSWORD: qapassword
+      POSTGRES_DB: qadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-net
+  redis-master:
+    image: redis:latest
+    container_name: redis_master
+    ports:
+      - "6379:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-net  # Redis master on app-net
+
+  redis-replica:
+    image: redis:latest
+    container_name: redis_replica
+    ports:
+      - "6380:6379"
+    command: [ "redis-server", "--slaveof", "redis-master", "6379", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-net
+
+  redis-replica2:
+    image: redis:latest
+    container_name: redis_replica2
+    ports:
+      - "6381:6379"
+    command: [ "redis-server", "--slaveof", "redis-master", "6379", "--appendonly", "yes" ]
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-net
+
+volumes:
+  redis_data:
+
+networks:
+  app-net:
+    driver: bridge
