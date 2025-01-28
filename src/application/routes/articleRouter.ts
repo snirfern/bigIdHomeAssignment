@@ -2,10 +2,12 @@ import {ArticleController} from '../controllers/articleController';
 import {NextFunction, Request, Response, Router} from 'express';
 import ArticleService from "../../domain/services/articleService";
 import {ArticleRepository} from "../../infrastructure/repositories/articleRepository";
+import {UserRepository} from "../../infrastructure/repositories/userRepository";
 
 
 const articleRouter = Router();
-const articleService = new ArticleService(new ArticleRepository());
+
+const articleService = new ArticleService(new ArticleRepository(), new UserRepository());
 const articleController = new ArticleController(articleService);
 
 articleRouter.post('/', (req: Request, res: Response, next: NextFunction) => articleController.createArticle(req, res, next));

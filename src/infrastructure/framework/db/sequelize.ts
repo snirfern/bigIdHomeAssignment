@@ -9,7 +9,7 @@ class SequelizeDB {
     private readonly sequelize: Sequelize;
 
     constructor() {
-        this.sequelize = new Sequelize(config.dataSources.sequelize.dbConfig);
+        this.sequelize = new Sequelize({...config.dataSources.sequelize.dbConfig, logging: false});
     }
 
 

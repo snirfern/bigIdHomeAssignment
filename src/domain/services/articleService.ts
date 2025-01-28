@@ -2,9 +2,10 @@ import {ArticleRepository} from "../../infrastructure/repositories/articleReposi
 import {AppError, EntityCreationFailure, EntityDoesNotExist} from "../errrors/errors";
 import {IArticle} from "../entities/IArticle";
 import {extractWordsOffsets} from "../../infrastructure/utils/utils";
-import {DatabaseError, ValidationError} from 'sequelize';
+import {ValidationError} from 'sequelize';
 import logger from "../../infrastructure/logger/logger";
 import {addItemsToSet, getTopKItemsFromSortedSet} from "../../infrastructure/utils/cacheHelper";
+import {UserRepository} from "../../infrastructure/repositories/userRepository";
 
 interface IWord {
     offsets: number[];
@@ -18,16 +19,19 @@ interface WordOffsetsMap {
 
 class ArticleService {
     private articleRepository: ArticleRepository;
+    private userRepository: UserRepository;
 
-    constructor(articleRepository: ArticleRepository) {
+    constructor(articleRepository: ArticleRepository, userRepository: UserRepository) {
         this.articleRepository = articleRepository;
+        this.userRepository = userRepository;
     }
 
     async createArticle(newArticleData: IArticle): Promise<IArticle> {
         try {
 
-            await this.articleRepository.findByAuthorId(newArticleData.authorId);
-
+            const doesAuthorExists = await this.userRepository.findById(newArticleData.authorId);
+            if (!doesAuthorExists)
+                throw new EntityDoesNotExist('Author does not exists.');
             const newArticle = await this.articleRepository.create(newArticleData);
             const wordsDict = extractWordsOffsets(newArticle.content);
             for (const word of Object.keys(wordsDict)) {
@@ -41,6 +45,8 @@ class ArticleService {
             logger.error(`Article service error:\n${(error as Error).message}`)
             if (error instanceof ValidationError) {
                 throw new EntityCreationFailure('Entity creation failed. corrupted body data.');
+            } else if (error instanceof EntityDoesNotExist) {
+                throw error;
             } else {
                 throw new AppError('Internal server error')
             }
