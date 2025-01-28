@@ -3,9 +3,9 @@ import {IArticle} from "../../domain/entities/IArticle";
 import {IBaseDal} from "./interface";
 
 
-export class ArticleDal implements IBaseDal<Article,IArticle> {
+export class ArticleDal implements IBaseDal<Article, IArticle> {
     async create(newArticle: Partial<IArticle>): Promise<Article> {
-        return await Article.create(newArticle);
+        return Article.create(newArticle);
     }
 
     async findByField(field: string, value: string): Promise<Article | null> {

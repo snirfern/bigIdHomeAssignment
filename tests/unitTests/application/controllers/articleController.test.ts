@@ -8,7 +8,7 @@ interface IWord {
 }
 
 interface WordOffsetsMap {
-    [word: string]: IWord;
+    [word: string]: IWord[];
 }
 
 const newArticleData = {authorId: '1', title: 'Test Article', content: 'Test content'};
@@ -97,8 +97,8 @@ describe('ArticleController', () => {
         it('should find words and return a 200 status with the words result', async () => {
             req.query = {words: wordQuery};
             const mockWordsResult: WordOffsetsMap[] = [
-                {"banana": {offsets: [8], article_id: "ff801138-1d87-48ea-afdd-4ae3a82cc71a"}},
-                {"cherry": {offsets: [18], article_id: "ff801138-1d87-48ea-afdd-4ae3a82cc71a"}}
+                {"banana": [{offsets: [8], article_id: "ff801138-1d87-48ea-afdd-4ae3a82cc71a"}]},
+                {"cherry": [{offsets: [18], article_id: "ff801138-1d87-48ea-afdd-4ae3a82cc71a"}]}
             ];
             articleServiceMock.findWords.mockResolvedValue(mockWordsResult);
             await articleController.findWords(req as Request, res as Response, next);
@@ -119,7 +119,7 @@ describe('ArticleController', () => {
 
     describe('findMostCommonWords', () => {
         it('should find the most common words and return a 200 status with the result', async () => {
-            req.params = { word: commonWord };
+            req.params = {word: commonWord};
 
             const mockCommonWordsResult = '123';
             articleServiceMock.findMostCommonWords.mockResolvedValue(mockCommonWordsResult);
@@ -132,7 +132,7 @@ describe('ArticleController', () => {
         });
 
         it('should call next with an error if finding most common words fails', async () => {
-            req.params = { word: commonWord };
+            req.params = {word: commonWord};
 
             const error = new Error('Error finding common words');
             articleServiceMock.findMostCommonWords.mockRejectedValue(error);

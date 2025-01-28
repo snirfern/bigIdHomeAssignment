@@ -1,10 +1,10 @@
 import {ArticleRepository} from "../../infrastructure/repositories/articleRepository";
-import {EntityCreationFailure, EntityDoesNotExist} from "../errrors/errors";
+import {AppError, EntityCreationFailure, EntityDoesNotExist} from "../errrors/errors";
 import {IArticle} from "../entities/IArticle";
 import {extractWordsOffsets} from "../../infrastructure/utils/utils";
-import {RedisClient, RedisConnectionManager} from "../../infrastructure/framework/redis/redis";
-import {DatabaseError, UniqueConstraintError, ValidationError} from 'sequelize';
-import config from "../../config/config";
+import {DatabaseError, ValidationError} from 'sequelize';
+import logger from "../../infrastructure/logger/logger";
+import {addItemsToSet, getTopKItemsFromSortedSet} from "../../infrastructure/utils/cacheHelper";
 
 interface IWord {
     offsets: number[];
@@ -12,17 +12,15 @@ interface IWord {
 }
 
 interface WordOffsetsMap {
-    [word: string]: IWord;
+    [key: string]: IWord[];
 }
 
 
 class ArticleService {
     private articleRepository: ArticleRepository;
-    private redis: RedisClient;
 
     constructor(articleRepository: ArticleRepository) {
         this.articleRepository = articleRepository;
-        this.redis = RedisConnectionManager.getConnection(config.dataSources.redis.dbConfig)
     }
 
     async createArticle(newArticleData: IArticle): Promise<IArticle> {
@@ -30,21 +28,21 @@ class ArticleService {
 
             await this.articleRepository.findByAuthorId(newArticleData.authorId);
 
-
             const newArticle = await this.articleRepository.create(newArticleData);
             const wordsDict = extractWordsOffsets(newArticle.content);
             for (const word of Object.keys(wordsDict)) {
                 wordsDict[word].article_id = newArticle.id;
-                await this.redis.addItemsToSet(word, () => wordsDict[word].offsets.length ?? 0, [wordsDict[word]]);
+                await addItemsToSet(word, () => wordsDict[word].offsets.length ?? 0, [wordsDict[word]]);
             }
 
             return newArticle;
 
         } catch (error) {
-            if (error instanceof ValidationError || error instanceof DatabaseError || error instanceof UniqueConstraintError) {
+            logger.error(`Article service error:\n${(error as Error).message}`)
+            if (error instanceof ValidationError || error instanceof DatabaseError || error instanceof EntityCreationFailure) {
                 throw new EntityCreationFailure('Entity creation failed.corrupted body data.');
             } else {
-                throw error;
+                throw new AppError('Internal server error')
             }
         }
     }
@@ -59,19 +57,17 @@ class ArticleService {
 
 
     async findWords(words: string[]): Promise<WordOffsetsMap[]> {
-        let wordsRes = [];
+        const finalRes: WordOffsetsMap[] = [];
         for (const word of words) {
-            const wordsDistribution = await this.redis.getTopScoreItem(word)
-            if (wordsDistribution) {
-                wordsRes.push(wordsDistribution)
-            }
+            const res = await getTopKItemsFromSortedSet<IWord>(word)
+            finalRes.push({[word]: res})
         }
-        return wordsRes;
+        return finalRes;
     }
 
 
     async findMostCommonWords(word: string): Promise<string> {
-        const mostCommonWordsRes = await this.redis.getTopKItemsFromSortedSet(word, -1, -1)
+        const mostCommonWordsRes = await getTopKItemsFromSortedSet<IWord>(word, 1)
         return mostCommonWordsRes.length > 0 ? mostCommonWordsRes[0].article_id : '';
     }
 }

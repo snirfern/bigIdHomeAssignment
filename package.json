@@ -9,7 +9,7 @@
     "start-docker": "docker-compose -f docker/app/docker-compose.yml up -d",
     "run-app": "node dist/index.js",
     "start": "npm run install-dependencies && npm run build && npm run start-docker && npm run run-app",
-    "test": "jest --verbose --json --outputFile=./test-results/test-output.json"
+    "test": "jest --no-cache --silent=false --verbose --json --outputFile=./test-results/test-output.json"
   },
   "keywords": [],
   "author": "",

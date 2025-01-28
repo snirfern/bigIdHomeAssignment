@@ -1,37 +1,20 @@
 version: '3.8'
 
 services:
-  test-service:
-    build:
-      context: ../..
-      dockerfile: docker/tests/Dockerfile
-    container_name: app_test
-    environment:
-      VE_DB_HOST: postgres_db
-      VE_REDIS_HOST: redis_master
-      NODE_ENV: test
-    networks:
-      - app-net
-    depends_on:
-      - test_db
-      - redis-master
-    volumes:
-      - ./test-results:/usr/src/app/test-results
-
-  test_db:
+  db:
     image: postgres:13
     container_name: postgres_db
     environment:
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword
-      POSTGRES_DB: testdb
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: devdb
+      NODE_ENV: dev
     ports:
       - "5432:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-net
-
   redis-master:
     image: redis:latest
     container_name: redis_master
@@ -42,7 +25,6 @@ services:
       - redis_data:/data
     networks:
       - app-net
-
   redis-replica:
     image: redis:latest
     container_name: redis_replica

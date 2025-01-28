@@ -11,7 +11,6 @@ class RedisConnectionManager {
 
     static getConnection(redisConfig: RedisConfig): RedisClient {
         const configKey = `${redisConfig.host}:${redisConfig.port}`;
-        console.log(`configkey: ${configKey}`)
         if (!this.connections.has(configKey)) {
             const redisClient = new RedisClient(redisConfig);
             this.connections.set(configKey, redisClient);
@@ -25,6 +24,8 @@ class RedisConnectionManager {
 
 
 }
+
+const WITH_SCORES = 'WITHSCORES'
 
 class RedisClient {
     private client: RedisInstance;
@@ -44,6 +45,10 @@ class RedisClient {
         });
     }
 
+    async flushAll(): Promise<void> {
+        await this.client.flushall()
+    }
+
     async quit(): Promise<void> {
         try {
             await this.client.quit();
@@ -53,46 +58,13 @@ class RedisClient {
         }
     }
 
-
-    async getTopScoreItem(key: string): Promise<{ [key: string]: any } | null> {
-        const result = await this.client.zrange(key, -1, -1, 'WITHSCORES');
-        if (result.length > 0) {
-            const memberString = result[0];
-            return {[key]: JSON.parse(memberString)};
-        }
-        return null;
+    async addItemsToSortedSet(key: string, members: any[]): Promise<number> {
+        return this.client.zadd(key, ...members);
     }
 
-    async addItemsToSet(key: string, scoreFn: (member?: any) => number, members: any[]): Promise<number> {
-        const flattenedMembers: (string | number)[] = [];
 
-        for (const member of members) {
-            const score = scoreFn(member);
-            const memberString = JSON.stringify(member);
-            flattenedMembers.push(score, memberString);
-        }
-
-        const addSetItemsRes = await this.client.zadd(key, ...flattenedMembers);
-        if (addSetItemsRes === 0) {
-            throw new Error('Internal service error')
-        }
-        return addSetItemsRes;
-    }
-
-    async getTopKItemsFromSortedSet(key: string, start: number, end: number): Promise<any[]> {
-
-        const result = await this.client.zrange(key, start, end, 'WITHSCORES');
-        if (!result || result.length === 0) {
-            return [];
-        }
-        const parsedResult = [];
-        for (let i = 0; i < result.length; i += 2) {
-            const member = JSON.parse(result[i]);
-            const score = result[i + 1];
-            parsedResult.push({...member, score: score});
-        }
-
-        return parsedResult;
+    async getTopkwithScores(key: string, start: number, end: number): Promise<any[]> {
+        return this.client.zrange(key, start, end, WITH_SCORES);
     }
 
 

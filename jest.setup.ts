@@ -5,6 +5,7 @@ import config from "./src/config/config";
 
 
 beforeAll(async () => {
+    await RedisConnectionManager.getConnection(config.dataSources.redis.dbConfig).flushAll();
     await sequelizeDB.connect();
 
     if (process.env.NODE_ENV === 'test') {

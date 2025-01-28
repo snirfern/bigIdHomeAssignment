@@ -4,17 +4,17 @@ import {IUser} from "../../domain/entities/IUser";
 export class UserRepository {
     private userDAL = new UserDAL();
 
-    async create(newUser: IUser): Promise<IUser> {
-        return await this.userDAL.create(newUser) as IUser;
+    create(newUser: IUser): Promise<IUser> {
+        return this.userDAL.create(newUser);
     }
 
     async findById(id: string): Promise<IUser | null> {
-        return await this.userDAL.findByField('id', id) as IUser;
+        return this.userDAL.findByField('id', id);
     }
 
 
     async findByEmail(email: string): Promise<IUser | null> {
-        return await this.userDAL.findByField('email', email) as IUser;
+        return this.userDAL.findByField('email', email);
     }
 
 

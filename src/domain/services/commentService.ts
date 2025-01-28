@@ -9,16 +9,16 @@ class CommentService {
         this.commentRepository = commentRepository;
     }
 
-    async createComment(newComment: IComment) {
-        return await this.commentRepository.create(newComment);
+    async createComment(newComment: IComment): Promise<IComment> {
+        return this.commentRepository.create(newComment);
     }
 
-    async findComment(id: string) {
+    async findComment(id: string): Promise<IComment> {
         const comment = await this.commentRepository.findById(id);
         if (!comment) {
             throw new EntityDoesNotExist('Comment was not found.');
         }
-        return comment as IComment;
+        return comment;
     }
 }
 

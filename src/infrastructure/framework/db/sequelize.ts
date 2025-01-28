@@ -12,6 +12,7 @@ class SequelizeDB {
         this.sequelize = new Sequelize(config.dataSources.sequelize.dbConfig);
     }
 
+
     async connect() {
         try {
             await this.sequelize.authenticate();
@@ -52,12 +53,11 @@ class SequelizeDB {
             text: 'This is a demo comment.',
             articleId: '123e4567-e89b-12d3-a456-426614174001'
         })
-
     }
 
     private async dropAllTables() {
         try {
-            await this.sequelize.drop();
+            const res = await this.sequelize.drop();
             logger.info('All existing tables have been dropped successfully.');
         } catch (error) {
             logger.error(`Error while dropping tables: ${error}`);
