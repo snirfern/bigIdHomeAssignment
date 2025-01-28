@@ -20,8 +20,8 @@ export class AppError extends Error {
 
 
 export class EntityAlreadyExists extends AppError {
-    constructor(entityName: string) {
-        super(`${entityName} already exists.`, HttpStatusCode.CONFLICT);
+    constructor(message: string) {
+        super(message, HttpStatusCode.CONFLICT);
     }
 }
 

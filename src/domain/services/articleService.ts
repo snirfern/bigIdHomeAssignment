@@ -39,8 +39,8 @@ class ArticleService {
 
         } catch (error) {
             logger.error(`Article service error:\n${(error as Error).message}`)
-            if (error instanceof ValidationError || error instanceof DatabaseError || error instanceof EntityCreationFailure) {
-                throw new EntityCreationFailure('Entity creation failed.corrupted body data.');
+            if (error instanceof ValidationError) {
+                throw new EntityCreationFailure('Entity creation failed. corrupted body data.');
             } else {
                 throw new AppError('Internal server error')
             }
