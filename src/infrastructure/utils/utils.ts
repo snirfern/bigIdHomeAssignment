@@ -30,7 +30,6 @@ export const runWithRetry = async (func: (args?: any) => void, maxRetries: numbe
         try {
 
             await func(...args)
-            logger.info(`${func.name} connected successfully.`);
             return;
         } catch (error) {
             retryCount++;

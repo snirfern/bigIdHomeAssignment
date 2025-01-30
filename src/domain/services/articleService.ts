@@ -4,8 +4,9 @@ import {IArticle} from "../entities/IArticle";
 import {extractWordsOffsets} from "../../infrastructure/utils/utils";
 import {ValidationError} from 'sequelize';
 import logger from "../../infrastructure/logger/logger";
-import {addItemsToSet, getTopKItemsFromSortedSet} from "../../infrastructure/utils/cacheHelper";
 import {UserRepository} from "../../infrastructure/repositories/userRepository";
+import config from "../../config/config";
+import {CacheHelper} from "../../infrastructure/utils/cacheHelper";
 
 interface IWord {
     offsets: number[];
@@ -20,10 +21,12 @@ interface WordOffsetsMap {
 class ArticleService {
     private articleRepository: ArticleRepository;
     private userRepository: UserRepository;
+    private readonly cache: CacheHelper;
 
     constructor(articleRepository: ArticleRepository, userRepository: UserRepository) {
         this.articleRepository = articleRepository;
         this.userRepository = userRepository;
+        this.cache = new CacheHelper(config.dataSources.redis.dbConfig)
     }
 
     async createArticle(newArticleData: IArticle): Promise<IArticle> {
@@ -36,7 +39,7 @@ class ArticleService {
             const wordsDict = extractWordsOffsets(newArticle.content);
             for (const word of Object.keys(wordsDict)) {
                 wordsDict[word].article_id = newArticle.id;
-                await addItemsToSet(word, () => wordsDict[word].offsets.length ?? 0, [wordsDict[word]]);
+                await this.cache.addItemsToSet(word, () => wordsDict[word].offsets.length ?? 0, [wordsDict[word]]);
             }
 
             return newArticle;
@@ -65,7 +68,7 @@ class ArticleService {
     async findWords(words: string[]): Promise<WordOffsetsMap[]> {
         const finalRes: WordOffsetsMap[] = [];
         for (const word of words) {
-            const res = await getTopKItemsFromSortedSet<IWord>(word)
+            const res = await this.cache.getTopKItemsFromSortedSet<IWord>(word)
             finalRes.push({[word]: res})
         }
         return finalRes;
@@ -73,7 +76,7 @@ class ArticleService {
 
 
     async findMostCommonWords(word: string): Promise<string> {
-        const mostCommonWordsRes = await getTopKItemsFromSortedSet<IWord>(word, 1)
+        const mostCommonWordsRes = await this.cache.getTopKItemsFromSortedSet<IWord>(word, 1)
         return mostCommonWordsRes.length > 0 ? mostCommonWordsRes[0].article_id : '';
     }
 }

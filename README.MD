@@ -10,7 +10,8 @@ There are three relevant environments for this project:
 
 1. **Development Environment**  
    This env enables to run the services ONLY, independently, so interaction from localhost is enabled.  
-   Postman_requests.json is attached to the root dir in order to have a ready template for the entire requests.  
+   Postman_requests.json is attached to the root dir in order to have a ready template for the entire requests.
+   In order to connect to all services add NODE_ENV=dev to your localhost env.
    Navigate to the development environment directory:  
    `cd docker/dev`  
    

@@ -2,9 +2,9 @@ import {ArticleRepository} from "../../../../src/infrastructure/repositories/art
 import ArticleService from "../../../../src/domain/services/articleService";
 import {IArticle} from "../../../../src/domain/entities/IArticle";
 import {AppError, EntityCreationFailure, EntityDoesNotExist} from "../../../../src/domain/errrors/errors";
-import {addItemsToSet, getTopKItemsFromSortedSet} from "../../../../src/infrastructure/utils/cacheHelper";
 import {extractWordsOffsets} from "../../../../src/infrastructure/utils/utils";
 import {UserRepository} from "../../../../src/infrastructure/repositories/userRepository";
+import {CacheHelper} from "../../../../src/infrastructure/utils/cacheHelper";
 
 jest.mock('../../../../src/infrastructure/repositories/articleRepository', () => {
     return {
@@ -27,11 +27,16 @@ jest.mock("../../../../src/infrastructure/utils/utils", () => ({
     extractWordsOffsets: jest.fn(),
 }));
 
-jest.mock("../../../../src/infrastructure/utils/cacheHelper", () => ({
-    addItemsToSet: jest.fn(),
-    getTopKItemsFromSortedSet: jest.fn(),
-}));
-
+jest.mock("../../../../src/infrastructure/utils/cacheHelper", () => {
+    const cacheHelperMock = {
+        redisInstance: jest.fn(),
+        addItemsToSet: jest.fn(),
+        getTopKItemsFromSortedSet: jest.fn(),
+    };
+    return {
+        CacheHelper: jest.fn(() => cacheHelperMock),
+    };
+});
 const newArticleMockData: IArticle = {
     authorId: '123',
     title: 'some title',
@@ -42,13 +47,16 @@ const testWord = 'testWord'
 describe('ArticleService', () => {
     let articleService: ArticleService;
     let articleRepositoryMock: jest.Mocked<ArticleRepository>;
-    let userRepositoryMock: jest.Mocked<UserRepository>
+    let userRepositoryMock: jest.Mocked<UserRepository>;
+    let cacheHelperMock: jest.Mocked<CacheHelper>;
+
     beforeEach(() => {
 
         articleRepositoryMock = new ArticleRepository() as jest.Mocked<ArticleRepository>;
         userRepositoryMock = new UserRepository() as jest.Mocked<UserRepository>;
-
+        cacheHelperMock = new CacheHelper({host: 'mock_host', port: 123}) as jest.Mocked<CacheHelper>
         articleService = new ArticleService(articleRepositoryMock as any, userRepositoryMock as any);
+
     });
 
     describe('findArticle', () => {
@@ -80,19 +88,20 @@ describe('ArticleService', () => {
             userRepositoryMock.findById.mockResolvedValue({id: '1', email: 'someemail@email.com'});
             articleRepositoryMock.create.mockResolvedValue(mockArticle);
             (extractWordsOffsets as jest.Mock).mockReturnValue(mockWordsDict);
-            (addItemsToSet as jest.Mock).mockResolvedValue(1);
+            (cacheHelperMock.addItemsToSet as jest.Mock).mockResolvedValue(1);
 
             const result = await articleService.createArticle(newArticleMockData);
 
             expect(userRepositoryMock.findById).toHaveBeenCalledWith(newArticleMockData.authorId);
             expect(articleRepositoryMock.create).toHaveBeenCalledWith(newArticleMockData);
             expect(extractWordsOffsets).toHaveBeenCalledWith(newArticleMockData.content);
-            expect(addItemsToSet).toHaveBeenCalledTimes(2);
-            expect(addItemsToSet).toHaveBeenCalledWith('test', expect.any(Function), [{
+
+            expect(cacheHelperMock.addItemsToSet).toHaveBeenCalledTimes(2);
+            expect(cacheHelperMock.addItemsToSet).toHaveBeenCalledWith('test', expect.any(Function), [{
                 offsets: [0],
                 article_id: '1'
             }]);
-            expect(addItemsToSet).toHaveBeenCalledWith('content', expect.any(Function), [{
+            expect(cacheHelperMock.addItemsToSet).toHaveBeenCalledWith('content', expect.any(Function), [{
                 offsets: [5],
                 article_id: '1'
             }]);
@@ -117,7 +126,7 @@ describe('ArticleService', () => {
                 test: {offsets: [0], article_id: '1'},
                 content: {offsets: [5], article_id: '1'},
             });
-            (addItemsToSet as jest.Mock).mockRejectedValue(new Error('Redis error'));
+            (cacheHelperMock.addItemsToSet as jest.Mock).mockRejectedValue(new Error('Redis error'));
 
             await expect(articleService.createArticle(newArticleMockData))
                 .rejects
@@ -127,21 +136,24 @@ describe('ArticleService', () => {
 
     describe('findWords', () => {
         it('should return word offsets correctly from cache helper', async () => {
-            (getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([{article_id: '1', offsets: [0]}]);
+            (cacheHelperMock.getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([{
+                article_id: '1',
+                offsets: [0]
+            }]);
 
             const words = [testWord];
             const result = await articleService.findWords(words);
 
-            expect(getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord);
+            expect(cacheHelperMock.getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord);
             expect(result).toEqual([{[testWord]: [{"article_id": "1", "offsets": [0]}]}]);
         });
 
         it('should handle cases where no results are found for the words', async () => {
-            (getTopKItemsFromSortedSet as jest.Mock).mockResolvedValueOnce([]);
+            (cacheHelperMock.getTopKItemsFromSortedSet as jest.Mock).mockResolvedValueOnce([]);
 
             const result = await articleService.findWords([testWord]);
 
-            expect(getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord);
+            expect(cacheHelperMock.getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord);
             expect(result).toEqual([{[testWord]: []}]);
         });
     });
@@ -150,24 +162,24 @@ describe('ArticleService', () => {
         it('should return the article_id of the most common word', async () => {
 
 
-            (getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([
+            (cacheHelperMock.getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([
                 {article_id: '1', score: 100},
                 {article_id: '2', score: 90},
             ]);
 
             const result = await articleService.findMostCommonWords(testWord);
 
-            expect(getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord, 1);
+            expect(cacheHelperMock.getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord, 1);
             expect(result).toBe('1');
         });
 
         it('should return undefined if no result is found', async () => {
 
-            (getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([]);
+            (cacheHelperMock.getTopKItemsFromSortedSet as jest.Mock).mockResolvedValue([]);
 
             const result = await articleService.findMostCommonWords(testWord);
 
-            expect(getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord, 1);
+            expect(cacheHelperMock.getTopKItemsFromSortedSet).toHaveBeenCalledWith(testWord, 1);
             expect(result).toEqual('');
         });
     });

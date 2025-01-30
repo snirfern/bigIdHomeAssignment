@@ -13,7 +13,7 @@ class SequelizeDB {
     }
 
 
-    async connect() {
+    async connect(): Promise<void> {
         try {
             await this.sequelize.authenticate();
             if (process.env.NODE_ENV === 'test') {
@@ -23,7 +23,7 @@ class SequelizeDB {
 
             await this.sequelize.sync({force: true})
             logger.info('Connection to the database has been established successfully.');
-            return this;
+            return;
         } catch (error) {
             logger.error(`Unable to connect to the database:${error}`);
             throw error;

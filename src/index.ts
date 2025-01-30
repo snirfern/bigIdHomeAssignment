@@ -7,6 +7,7 @@ import userRouter from "./application/routes/usersRouter";
 import errorHandler from "./application/middleware/errorHandler";
 import logger from "./infrastructure/logger/logger";
 import {runWithRetry} from "./infrastructure/utils/utils";
+import {RedisConnectionManager} from "./infrastructure/framework/redis/redis";
 
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(errorHandler);
 const PORT = config.server.port;
 
 app.listen(PORT, async () => {
+    await runWithRetry(() => RedisConnectionManager.getConnection(config.dataSources.redis.dbConfig).connect())
     await runWithRetry(() => sequelizeDB.connect());
     logger.info(`Server running on http://localhost:${PORT}`);
 });

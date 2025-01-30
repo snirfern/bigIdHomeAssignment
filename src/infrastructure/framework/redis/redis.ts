@@ -1,7 +1,7 @@
 import Redis, {Redis as RedisInstance} from 'ioredis';
 import logger from "../../logger/logger";
 
-interface RedisConfig {
+export interface RedisConfig {
     host: string;
     port: number;
 }
@@ -15,8 +15,6 @@ class RedisConnectionManager {
             const redisClient = new RedisClient(redisConfig);
             this.connections.set(configKey, redisClient);
             logger.info(`Created new Redis connection for ${configKey}`);
-        } else {
-            logger.info(`Reusing existing Redis connection for ${configKey}`);
         }
 
         return this.connections.get(configKey)!;
@@ -34,6 +32,8 @@ class RedisClient {
         this.client = new Redis({
             host: redisConfig.host,
             port: redisConfig.port,
+            lazyConnect: true,
+            retryStrategy: () => null
         });
 
         this.client.on('connect', () => {
@@ -41,8 +41,13 @@ class RedisClient {
         });
 
         this.client.on('error', (err) => {
-            logger.error(`rror to ${redisConfig.host}:${redisConfig.port}:\n${err}`);
+            logger.error(`error to ${redisConfig.host}:${redisConfig.port}: ${err}`);
         });
+    }
+
+    async connect(): Promise<void> {
+        await this.client.connect();
+        return;
     }
 
     async flushAll(): Promise<void> {
